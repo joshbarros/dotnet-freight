@@ -207,3 +207,4 @@ Nx 23.2.1 orchestrates `nx build web` and `nx build api`; EF Core migrations are
 
 - [dotnet-clinic](https://github.com/joshbarros/dotnet-clinic): appointment slots in a provider session.
 - [dotnet-ledger](https://github.com/joshbarros/dotnet-ledger): outgoing payments from an account balance.
+- [dotnet-warehouse](https://github.com/joshbarros/dotnet-warehouse): warehouse stock and outbound orders.
