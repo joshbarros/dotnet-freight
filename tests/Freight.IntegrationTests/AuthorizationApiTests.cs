@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Freight.Bookings;
 using Freight.Documents;
 using Xunit;
 
@@ -152,7 +153,7 @@ public class AuthorizationApiTests(ApiFactory factory)
         var client = factory.ClientFor(ana.AccessToken);
 
         Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/bookings", new { sailingCode = sailing, reference = "", teu = 1 })).StatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/bookings", new { sailingCode = sailing, reference = "BK", teu = 21 })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/bookings", new { sailingCode = sailing, reference = "BK", teu = BookingRules.MaxTeuPerBooking + 1 })).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/api/bookings", new { sailingCode = "NOPE", reference = "BK", teu = 1 })).StatusCode);
     }
 
