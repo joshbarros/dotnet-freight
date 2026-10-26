@@ -1,19 +1,27 @@
 version: 2
+# Monthly, minor and patch only, a few PRs at a time: major upgrades are a decision, not a bot's.
 updates:
   - package-ecosystem: nuget
     directory: /
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
+    open-pull-requests-limit: 3
+    ignore:
+      - { dependency-name: "*", update-types: ["version-update:semver-major"] }
     groups:
-      microsoft: { patterns: ["Microsoft.*", "Npgsql*"] }
+      all-nuget: { patterns: ["*"] }
   - package-ecosystem: npm
     directory: /
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
+    open-pull-requests-limit: 3
+    ignore:
+      - { dependency-name: "*", update-types: ["version-update:semver-major"] }
     groups:
-      angular: { patterns: ["@angular/*", "@angular-eslint/*"] }
-      nx: { patterns: ["@nx/*", "nx"] }
+      all-npm: { patterns: ["*"] }
   - package-ecosystem: github-actions
     directory: /
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
+    open-pull-requests-limit: 2
   - package-ecosystem: docker
     directory: /
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
+    open-pull-requests-limit: 2
