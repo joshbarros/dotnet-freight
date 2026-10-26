@@ -42,7 +42,7 @@
     "angular-eslint": "21.4.0",
     "eslint": "9.39.5",
     "nx": "23.2.1",
-    "postcss": "^8.5.0",
+    "postcss": "^8.5.31",
     "prettier": "3.6.2",
     "tailwindcss": "^4.1.0",
     "typescript": "5.9.3",
