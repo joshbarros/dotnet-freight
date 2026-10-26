@@ -16,7 +16,7 @@ public class DocumentsController(DocumentsDbContext db, ICurrentUser user) : Con
     [HttpGet("{bookingId:guid}")]
     public async Task<ActionResult<BillOfLadingDto>> Get(Guid bookingId, CancellationToken ct)
     {
-        var doc = await db.Documents.AsNoTracking().FirstOrDefaultAsync(d => d.BookingId == bookingId, ct);
+        var doc = await db.BillsOfLading.AsNoTracking().FirstOrDefaultAsync(d => d.BookingId == bookingId, ct);
         return doc is null || !OwnerAccess.CanAccess(user, doc.OwnerId)
             ? NotFound()
             : new BillOfLadingDto(doc.BookingId, doc.Number, doc.Status.ToString(), doc.Reason, doc.CreatedAt);

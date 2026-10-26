@@ -134,7 +134,7 @@ public class AuthorizationApiTests(ApiFactory factory)
         var bookingId = Guid.CreateVersion7();
         await using (var db = TestDatabase.Documents())
         {
-            db.Documents.Add(new BillOfLading { BookingId = bookingId, OwnerId = ana.UserId, Number = "BL-X", Status = DocumentStatus.Issued, CreatedAt = DateTimeOffset.UtcNow });
+            db.BillsOfLading.Add(new BillOfLading { BookingId = bookingId, OwnerId = ana.UserId, Number = "BL-X", Status = DocumentStatus.Issued, CreatedAt = DateTimeOffset.UtcNow });
             await db.SaveChangesAsync();
         }
 

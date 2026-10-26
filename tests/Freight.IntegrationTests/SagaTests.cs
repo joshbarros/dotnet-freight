@@ -26,7 +26,7 @@ public class SagaTests
         Assert.Contains("poison", ex.Message, StringComparison.OrdinalIgnoreCase);
 
         await using var check = TestDatabase.Documents();
-        var doc = await check.Documents.SingleAsync(d => d.BookingId == booking.Id);
+        var doc = await check.BillsOfLading.SingleAsync(d => d.BookingId == booking.Id);
         Assert.Equal(DocumentStatus.Rejected, doc.Status); // committed before the dead-letter
         Assert.Equal(booking.OwnerId, doc.OwnerId);
         Assert.Equal(1, await check.Outbox.CountAsync(o => o.RoutingKey == Topology.ReleaseKey));
@@ -57,7 +57,7 @@ public class SagaTests
         await using var checkDocs = TestDatabase.Documents();
         Assert.Equal(MarkOutcome.Skipped, mark);
         Assert.Equal(BookingStatus.Reversed, (await check.Bookings.SingleAsync()).Status);
-        Assert.Equal(DocumentStatus.Issued, (await checkDocs.Documents.SingleAsync()).Status);
+        Assert.Equal(DocumentStatus.Issued, (await checkDocs.BillsOfLading.SingleAsync()).Status);
     }
 
     [Fact]

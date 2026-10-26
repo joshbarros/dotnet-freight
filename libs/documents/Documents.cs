@@ -20,7 +20,7 @@ public class DocumentsDbContext(DbContextOptions<DocumentsDbContext> options) : 
 {
     public const string SchemaName = "documents";
 
-    public DbSet<BillOfLading> Documents => Set<BillOfLading>();
+    public DbSet<BillOfLading> BillsOfLading => Set<BillOfLading>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -65,7 +65,7 @@ public class DocumentsHandler(DocumentsDbContext db) : IMessageHandler
         if (PoisonRule.IsPoison(held.Reference))
         {
             const string reason = "Reference contains the poison token.";
-            db.Documents.Add(new BillOfLading
+            db.BillsOfLading.Add(new BillOfLading
             {
                 BookingId = held.BookingId,
                 OwnerId = held.OwnerId,
@@ -80,7 +80,7 @@ public class DocumentsHandler(DocumentsDbContext db) : IMessageHandler
         else
         {
             var number = $"BL-{held.BookingId.ToString("N")[^12..].ToUpperInvariant()}";
-            db.Documents.Add(new BillOfLading
+            db.BillsOfLading.Add(new BillOfLading
             {
                 BookingId = held.BookingId,
                 OwnerId = held.OwnerId,
