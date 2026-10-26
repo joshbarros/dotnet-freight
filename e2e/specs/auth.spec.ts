@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { ADMIN, CUSTOMER_PASSWORD, adminToken, registerCustomer, signIn } from './support';
 
+// Scenario numbers: what the sailing holds and what the customer books.
+const HOLDS = 6;
+const BOOKS = 2;
+
 const run = () => Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 1000);
 
 test('an anonymous visitor sees only the sign-in form', async ({ page }) => {
@@ -45,7 +49,7 @@ test('a customer books, sees only their own bookings, and has no staff controls'
       vessel: 'MV Auth',
       origin: 'Santos',
       destination: 'Rotterdam',
-      capacityTeu: 6,
+      capacityTeu: HOLDS,
     },
   });
   expect(opened.status()).toBe(201);
@@ -55,7 +59,7 @@ test('a customer books, sees only their own bookings, and has no staff controls'
   await page.getByRole('button', { name: new RegExp(`^${sailing}`) }).click();
 
   await page.getByLabel('Booking reference').fill(`BK-${id}`);
-  await page.getByLabel('TEU', { exact: true }).fill('2');
+  await page.getByLabel('TEU', { exact: true }).fill(String(BOOKS));
   await page.getByRole('button', { name: 'Book space' }).click();
   const mine = page.locator(`tr[data-reference="BK-${id}"]`);
   await expect(mine.getByTestId('status')).toHaveText('Issued', { timeout: 20_000 });
