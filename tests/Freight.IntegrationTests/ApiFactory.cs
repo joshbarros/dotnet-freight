@@ -52,6 +52,10 @@ public static class ApiHelpers
     }
 
     public static string NewEmail() => $"user-{Guid.NewGuid():N}@test.local";
+    /// <summary>The body of POST /api/sailings. One place, so a system with a different shape changes one line.</summary>
+    public static object SailingBody(string code, int capacityTeu) =>
+        new { code, vessel = "MV Test", origin = "Santos", destination = "Rotterdam", capacityTeu };
+
     public static string NewCode() => $"S{Guid.NewGuid():N}"[..14];
 
     public static async Task<SignedIn> RegisterAsync(this ApiFactory factory, string? email = null)
@@ -101,8 +105,7 @@ public static class ApiHelpers
     public static async Task<string> CreateSailingAsync(this ApiFactory factory, SignedIn admin, int capacityTeu = 10)
     {
         var code = NewCode();
-        var response = await factory.ClientFor(admin.AccessToken).PostAsJsonAsync("/api/sailings",
-            new { code, vessel = "MV Test", origin = "Santos", destination = "Rotterdam", capacityTeu });
+        var response = await factory.ClientFor(admin.AccessToken).PostAsJsonAsync("/api/sailings", SailingBody(code, capacityTeu));
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         return code;
     }

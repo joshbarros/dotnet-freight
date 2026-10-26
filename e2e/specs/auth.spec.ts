@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { ADMIN, CUSTOMER_PASSWORD, adminToken, registerCustomer, signIn } from './support';
+import {
+  ADMIN,
+  CUSTOMER_PASSWORD,
+  adminToken,
+  registerCustomer,
+  sailingBody,
+  signIn,
+} from './support';
 
 // Scenario numbers: what the sailing holds and what the customer books.
 const HOLDS = 6;
@@ -44,13 +51,7 @@ test('a customer books, sees only their own bookings, and has no staff controls'
   const token = await adminToken(staff.request);
   const opened = await staff.request.post('/api/sailings', {
     headers: { Authorization: `Bearer ${token}` },
-    data: {
-      code: sailing,
-      vessel: 'MV Auth',
-      origin: 'Santos',
-      destination: 'Rotterdam',
-      capacityTeu: HOLDS,
-    },
+    data: sailingBody(sailing, HOLDS),
   });
   expect(opened.status()).toBe(201);
 

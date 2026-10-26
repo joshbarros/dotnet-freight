@@ -1,4 +1,11 @@
-<div>
+<div class="mx-auto max-w-6xl px-4 py-8">
+  <header class="mb-8">
+    <h1 class="text-2xl font-semibold tracking-tight">Freight</h1>
+    <p class="mt-1 text-sm text-slate-600">
+      Container space on a sailing. Every number on this page is read from the API.
+    </p>
+  </header>
+
   @if (error()) {
     <p
       role="alert"
@@ -41,11 +48,11 @@
               </button>
             </li>
           } @empty {
-            <li class="text-sm text-slate-500">
-              {{
-                auth.isStaff() ? 'No sailings yet. Open one below.' : 'No sailings are open yet.'
-              }}
-            </li>
+            @if (auth.isStaff()) {
+              <li class="text-sm text-slate-500">No sailings yet. Open one below.</li>
+            } @else {
+              <li class="text-sm text-slate-500">No sailings are open yet.</li>
+            }
           }
         </ul>
       </section>
@@ -238,11 +245,11 @@
                 } @empty {
                   <tr>
                     <td colspan="6" class="py-6 text-center text-slate-500">
-                      {{
-                        auth.isStaff()
-                          ? 'No bookings on this sailing yet.'
-                          : 'You have no bookings on this sailing yet.'
-                      }}
+                      @if (auth.isStaff()) {
+                        No bookings on this sailing yet.
+                      } @else {
+                        You have no bookings on this sailing yet.
+                      }
                     </td>
                   </tr>
                 }

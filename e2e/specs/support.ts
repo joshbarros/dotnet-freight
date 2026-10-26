@@ -33,3 +33,12 @@ export async function adminToken(request: APIRequestContext): Promise<string> {
   expect(response.ok()).toBeTruthy();
   return (await response.json()).accessToken;
 }
+
+/** The body of POST /api/sailings: one place to adapt per system. */
+export const sailingBody = (code: string, capacityTeu: number) => ({
+  code,
+  vessel: 'MV Auth',
+  origin: 'Santos',
+  destination: 'Rotterdam',
+  capacityTeu,
+});

@@ -39,7 +39,7 @@ public class AuthorizationApiTests(ApiFactory factory)
     {
         var customer = await factory.RegisterAsync();
         var admin = await factory.AdminAsync();
-        var body = new { code = ApiHelpers.NewCode(), vessel = "MV Test", origin = "Santos", destination = "Rotterdam", capacityTeu = 10 };
+        var body = ApiHelpers.SailingBody(ApiHelpers.NewCode(), 10);
 
         Assert.Equal(HttpStatusCode.Forbidden, (await factory.ClientFor(customer.AccessToken).PostAsJsonAsync("/api/sailings", body)).StatusCode);
         Assert.Equal(HttpStatusCode.Created, (await factory.ClientFor(admin.AccessToken).PostAsJsonAsync("/api/sailings", body)).StatusCode);

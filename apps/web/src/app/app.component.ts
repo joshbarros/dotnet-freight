@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { AuthService } from './core/auth.service';
-import { LoginComponent } from './login/login.component';
-import { WorkspaceComponent } from './workspace/workspace.component';
+import { LoginComponent } from './login.component';
+import { WorkspaceComponent } from './workspace.component';
 
 @Component({
   selector: 'app-root',
