@@ -115,11 +115,23 @@ curl -s -X POST http://127.0.0.1:5210/api/bookings/<id>/reversal \
 
 A booking is validated at the door: reference required (at most 40 characters), TEU from 1 to 20. The fee is 90,000 cents per TEU plus a 7,500 cent documentation fee. The poison match is a case-sensitive substring: `BK-POISON-7` and any longer token containing `POISON` match.
 
+## Develop with Nx
+
+The repository is an Nx workspace (`nx.json`, plugin `@nx/dotnet`). `npx nx show projects` lists `api` (the ASP.NET Core monolith), `web` (the Angular app) and the inferred xUnit project.
+
+```bash
+docker compose up -d --wait db kafka rabbitmq   # the brokers and Postgres, not the app
+npx nx serve api                                # http://localhost:5210
+npx nx serve web                                # http://localhost:4290, proxies /api to the API
+WEB_URL=http://localhost:4290 npx playwright test   # the same browser specs, against the dev servers
+npx nx build web && npx nx build api            # what CI builds
+```
+
 ## What is tested, and where it runs
 
 - **xUnit against real Postgres** (`tests/api`, 25 tests): two tasks with two `DbContext`s fight for one remaining unit (one `Held`, one `Short`, remaining 0, no hold for the loser); empty input, over-limit input, integer overflow (4294967297 must not wrap to 1), the fee, the poison substring; the same message delivered twice is claimed once; a release returns the unit once; the poison rejection is committed before the dead-letter; a reversal followed by the late final mark leaves the booking `Reversed` and the document `Issued`. The race test was run against a read-then-write version of the reservation, where it failed, and against the conditional update, where it passes.
 - **`scripts/smoke.sh`** drives the composed stack with a run id on every code, so a kept volume does not collide: validation, the happy path (fee, bill of lading, Kafka log), the last unit with three concurrent bookings (one issued, two short, no hold for the losers), the poison reference (rejected, `documents.work.dlq` gains one message, TEU restored), and a reversal that lands between the bill of lading and the final mark (booking `Reversed`, document `Issued`, TEU back, second reversal `409`). To make that last window wide enough to hit on purpose, Compose sets `Bookings__FinalMarkDelayMs=1500`; it is a latency knob and defaults to 0.
-- **Playwright** (`e2e/specs/book-space.spec.ts`): opens a sailing in the UI, books space, sees `Issued` and the bill of lading number, reloads to prove the page reads the API and keeps nothing in `localStorage`, then reverses and sees the TEU come back. It runs against the composed web port, on a developer machine.
+- **Playwright** (`e2e/specs/book-space.spec.ts`): opens a sailing in the UI, books space, sees `Issued` and the bill of lading number, reloads to prove the page reads the API and keeps nothing in `localStorage`, then reverses and sees the TEU come back. It runs against the composed web port, on a developer machine. A second spec, `e2e/specs/ui-flows.spec.ts`, drives the page through the refusal messages (over-limit, empty reference, duplicate), the poison rejection, the loser of a race for the last of the scarce number, and the Kafka event log panel. Both specs pass against the Compose stack and against the Nx dev servers.
 - **CI** (`.github/workflows/ci.yml`, on push): `npm ci`, Prettier check, `dotnet format whitespace --verify-no-changes`, `dotnet test` with a Postgres 17 service, and `nx build` for web and api. CI does not run the compose smoke or the Playwright spec.
 
 ## Cloud mapping

@@ -76,26 +76,28 @@ export class AppComponent implements OnInit {
 
   async openSailing(): Promise<void> {
     await this.run(async () => {
+      const code = this.code();
       const sailing = await this.api.openSailing({
-        code: this.code(),
+        code,
         vessel: this.vessel(),
         origin: this.origin(),
         destination: this.destination(),
         capacityTeu: Number(this.capacity()),
       });
-      this.code.set('');
+      if (this.code() === code) this.code.set('');
       this.selectedCode.set(sailing.code);
     });
   }
 
   async book(): Promise<void> {
     await this.run(async () => {
+      const reference = this.reference();
       await this.api.book({
         sailingCode: this.selectedCode(),
-        reference: this.reference(),
+        reference,
         teu: Number(this.teu()),
       });
-      this.reference.set('');
+      if (this.reference() === reference) this.reference.set('');
     });
   }
 
