@@ -14,6 +14,7 @@ export type BookingStatus = 'Requested' | 'Held' | 'Issued' | 'Reversed' | 'Reje
 export interface Booking {
   id: string;
   sailingCode: string;
+  ownerId: string;
   reference: string;
   teu: number;
   feeCents: number;
@@ -30,4 +31,16 @@ export interface LogEntry {
   type: string;
   module: string;
   occurredAt: string;
+}
+
+export interface UserInfo {
+  id: string;
+  email: string;
+  roles: string[];
+}
+
+export interface SessionResponse {
+  accessToken: string;
+  expiresAt: string;
+  user: UserInfo;
 }
