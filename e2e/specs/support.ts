@@ -42,3 +42,10 @@ export const sailingBody = (code: string, capacityTeu: number) => ({
   destination: 'Rotterdam',
   capacityTeu,
 });
+
+/** Fills the booking form and submits it. A system whose form has other fields changes this one function. */
+export async function submitBooking(page: Page, reference: string, teu: number) {
+  await page.getByLabel('Booking reference').fill(reference);
+  await page.getByLabel('TEU', { exact: true }).fill(String(teu));
+  await page.getByRole('button', { name: 'Book space' }).click();
+}

@@ -6,6 +6,7 @@ import {
   registerCustomer,
   sailingBody,
   signIn,
+  submitBooking,
 } from './support';
 
 // Scenario numbers: what the sailing holds and what the customer books.
@@ -59,9 +60,7 @@ test('a customer books, sees only their own bookings, and has no staff controls'
   await expect(page.getByRole('heading', { name: 'Open a sailing' })).toHaveCount(0);
   await page.getByRole('button', { name: new RegExp(`^${sailing}`) }).click();
 
-  await page.getByLabel('Booking reference').fill(`BK-${id}`);
-  await page.getByLabel('TEU', { exact: true }).fill(String(BOOKS));
-  await page.getByRole('button', { name: 'Book space' }).click();
+  await submitBooking(page, `BK-${id}`, BOOKS);
   const mine = page.locator(`tr[data-reference="BK-${id}"]`);
   await expect(mine.getByTestId('status')).toHaveText('Issued', { timeout: 20_000 });
   await expect(mine.getByRole('button', { name: 'Event log' })).toHaveCount(0);
