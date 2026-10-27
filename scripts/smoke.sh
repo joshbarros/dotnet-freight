@@ -18,6 +18,10 @@ CUSTOMER_PASSWORD="Smoke-Passw0rd1"
 code_of() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 token_of() { python3 -c "import sys,json; print(json.load(sys.stdin)['accessToken'])"; }
 
+# Section 0 only needs "a small sailing" and "one booking"; a system with another shape adapts these two lines.
+open_small() { open_sailing "$1" 5; }
+book_one() { book "$1" "$2" 1; }
+
 open_sailing() { # code capacity -> prints nothing
   curl -sf -X POST "$API/api/sailings" -H "$JSON" -H "$ADM" \
     -d "{\"code\":\"$1\",\"vessel\":\"MV Smoke\",\"origin\":\"Santos\",\"destination\":\"Rotterdam\",\"capacityTeu\":$2}" >/dev/null \
@@ -54,8 +58,8 @@ ADM="Authorization: Bearer $(curl -sf -X POST "$API/api/auth/login" -H "$JSON" -
 CUS="Authorization: Bearer $(curl -sf -X POST "$API/api/auth/register" -H "$JSON" -d "{\"email\":\"smoke-$RUN@example.com\",\"password\":\"$CUSTOMER_PASSWORD\"}" | token_of)" || fail "could not register a customer"
 OTHER="Authorization: Bearer $(curl -sf -X POST "$API/api/auth/register" -H "$JSON" -d "{\"email\":\"other-$RUN@example.com\",\"password\":\"$CUSTOMER_PASSWORD\"}" | token_of)"
 [ "$(code_of -X POST "$API/api/sailings" -H "$JSON" -H "$CUS" -d '{"code":"X"}')" = 403 ] || fail "a customer must not open sailings"
-open_sailing "A-$RUN" 5
-IDA="$(book "A-$RUN" "BK-$RUN-OWN" 1)"
+open_small "A-$RUN"
+IDA="$(book_one "A-$RUN" "BK-$RUN-OWN")"
 [ "$(code_of -H "$OTHER" "$API/api/bookings/$IDA")" = 404 ] || fail "another customer must get 404 for someone else's booking"
 [ "$(code_of -H "$CUS" "$API/api/bookings/$IDA/events")" = 403 ] || fail "the event log is staff only"
 [ "$(code_of -X POST -H "$OTHER" "$API/api/bookings/$IDA/reversal")" = 404 ] || fail "another customer must not reverse it"
