@@ -41,6 +41,12 @@ public sealed record SignedIn(string AccessToken, string RefreshCookie, Guid Use
 
 public static class ApiHelpers
 {
+    public static Dictionary<string, object?> Also(this Dictionary<string, object?> body, string key, object? value)
+    {
+        body[key] = value;
+        return body;
+    }
+
     public const string Password = "Passw0rd-Test1";
 
     public static HttpClient ClientFor(this ApiFactory factory, string? accessToken = null)
@@ -55,6 +61,10 @@ public static class ApiHelpers
     /// <summary>The body of POST /api/sailings. One place, so a system with a different shape changes one line.</summary>
     public static object SailingBody(string code, int capacityTeu) =>
         new { code, vessel = "MV Test", origin = "Santos", destination = "Rotterdam", capacityTeu };
+
+    /// <summary>The body of POST /api/bookings. Add fields to the dictionary; a system with a different shape changes one place.</summary>
+    public static Dictionary<string, object?> BookingBody(string sailingCode, string reference, int teu = 1) =>
+        new() { ["sailingCode"] = sailingCode, ["reference"] = reference, ["teu"] = teu };
 
     public static string NewCode() => $"S{Guid.NewGuid():N}"[..14];
 
@@ -113,7 +123,7 @@ public static class ApiHelpers
     public static async Task<Guid> BookAsync(this ApiFactory factory, SignedIn who, string sailingCode, string? reference = null, int teu = 1)
     {
         var response = await factory.ClientFor(who.AccessToken).PostAsJsonAsync("/api/bookings",
-            new { sailingCode, reference = reference ?? $"BK-{Guid.NewGuid():N}"[..12], teu });
+            BookingBody(sailingCode, reference ?? $"BK-{Guid.NewGuid():N}"[..12], teu));
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
         return (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
     }

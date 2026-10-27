@@ -109,7 +109,7 @@ public class AuthorizationApiTests(ApiFactory factory)
         var ana = await factory.RegisterAsync();
 
         var response = await factory.ClientFor(ana.AccessToken).PostAsJsonAsync("/api/bookings",
-            new { sailingCode = sailing, reference = "BK-OWNER-1", teu = 1, ownerId = Guid.NewGuid() });
+            ApiHelpers.BookingBody(sailing, "BK-OWNER-1", 1).Also("ownerId", Guid.NewGuid()));
 
         var booking = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(ana.UserId, booking.GetProperty("ownerId").GetGuid());
@@ -152,9 +152,9 @@ public class AuthorizationApiTests(ApiFactory factory)
         var ana = await factory.RegisterAsync();
         var client = factory.ClientFor(ana.AccessToken);
 
-        Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/bookings", new { sailingCode = sailing, reference = "", teu = 1 })).StatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/bookings", new { sailingCode = sailing, reference = "BK", teu = BookingRules.MaxTeuPerBooking + 1 })).StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/api/bookings", new { sailingCode = "NOPE", reference = "BK", teu = 1 })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/bookings", ApiHelpers.BookingBody(sailing, "", 1))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/bookings", ApiHelpers.BookingBody(sailing, "BK", BookingRules.MaxTeuPerBooking + 1))).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/api/bookings", ApiHelpers.BookingBody("NOPE", "BK", 1))).StatusCode);
     }
 
     [Fact]

@@ -18,7 +18,7 @@ public class SagaTests
         await TestDatabase.OpenAsync();
         var sailing = await TestDatabase.AddSailingAsync(5);
         var booking = await TestDatabase.AddBookingAsync(sailing, "BK-POISON-1", 2, BookingStatus.Held);
-        var held = new CapacityHeld(booking.Id, booking.OwnerId, sailing.Id, 2, booking.Reference);
+        var held = TestDatabase.HeldMessage(booking, sailing);
 
         await using var docs = TestDatabase.Documents();
         var ex = await Assert.ThrowsAsync<PoisonMessageException>(() =>
@@ -44,7 +44,7 @@ public class SagaTests
 
         // The bill of lading is issued; the final mark has not landed yet.
         await using (var docs = TestDatabase.Documents())
-            await new DocumentsHandler(docs).IssueAsync(Guid.CreateVersion7(), new CapacityHeld(booking.Id, owner, sailing.Id, 2, booking.Reference));
+            await new DocumentsHandler(docs).IssueAsync(Guid.CreateVersion7(), TestDatabase.HeldMessage(booking, sailing, owner));
 
         // The owner reverses first.
         await using (var bookings = TestDatabase.Bookings())
@@ -136,7 +136,7 @@ public class SagaTests
 
         await using var db = TestDatabase.Bookings();
         var booking = await new BookingService(db, new FixedCatalog(sailing), new TestUser(owner))
-            .CreateAsync(new CreateBookingRequest(sailing.Code, "BK-1", 2), default);
+            .CreateAsync(TestDatabase.BookingRequest(sailing.Code, "BK-1", 2), default);
 
         await using var check = TestDatabase.Bookings();
         Assert.Equal(owner, (await check.Bookings.SingleAsync()).OwnerId);
@@ -153,7 +153,7 @@ public class SagaTests
         var sailing = await TestDatabase.AddSailingAsync(5);
         await using var db = TestDatabase.Bookings();
         var ex = await Assert.ThrowsAsync<DomainException>(() =>
-            new BookingService(db, new FixedCatalog(sailing), new TestUser(null)).CreateAsync(new CreateBookingRequest(sailing.Code, "BK-1", 1), default));
+            new BookingService(db, new FixedCatalog(sailing), new TestUser(null)).CreateAsync(TestDatabase.BookingRequest(sailing.Code, "BK-1", 1), default));
         Assert.Equal(401, ex.Status);
     }
 
@@ -163,7 +163,7 @@ public class SagaTests
         await TestDatabase.OpenAsync();
         await using var db = TestDatabase.Bookings();
         var ex = await Assert.ThrowsAsync<DomainException>(() =>
-            new BookingService(db, new FixedCatalog(), new TestUser(Guid.NewGuid())).CreateAsync(new CreateBookingRequest("NOPE", "BK-1", 1), default));
+            new BookingService(db, new FixedCatalog(), new TestUser(Guid.NewGuid())).CreateAsync(TestDatabase.BookingRequest("NOPE", "BK-1", 1), default));
         Assert.Equal(404, ex.Status);
     }
 }

@@ -3,6 +3,7 @@ using Freight.Capacity;
 using Freight.Documents;
 using Freight.Shared.Auth;
 using Freight.Shared.Contracts;
+using Freight.Shared.Messaging;
 using Microsoft.EntityFrameworkCore;
 
 namespace Freight.IntegrationTests;
@@ -56,6 +57,13 @@ public static class TestDatabase
         await db.SaveChangesAsync();
         return sailing;
     }
+
+    /// <summary>The request the booking service receives. One place to change for a system whose booking has a different shape.</summary>
+    public static CreateBookingRequest BookingRequest(string sailingCode, string reference, int teu) => new(sailingCode, reference, teu);
+
+    /// <summary>What Capacity tells the rest of the saga after it holds a booking's TEU.</summary>
+    public static CapacityHeld HeldMessage(Booking booking, Sailing sailing, Guid? ownerId = null) =>
+        new(booking.Id, ownerId ?? booking.OwnerId, sailing.Id, booking.Teu, booking.Reference);
 
     public static async Task<Booking> AddBookingAsync(Sailing sailing, string reference, int teu, BookingStatus status, Guid? ownerId = null)
     {
