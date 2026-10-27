@@ -9,9 +9,8 @@ public static class Totp
     {
         var key = Base32Decode(base32Key);
         var counter = (at ?? DateTimeOffset.UtcNow).ToUnixTimeSeconds() / 30;
-        var message = BitConverter.GetBytes(counter);
-        if (BitConverter.IsLittleEndian)
-            Array.Reverse(message);
+        var message = new byte[8];
+        System.Buffers.Binary.BinaryPrimitives.WriteInt64BigEndian(message, counter);
         var hash = HMACSHA1.HashData(key, message);
         var offset = hash[^1] & 0x0F;
         var binary = ((hash[offset] & 0x7F) << 24) | (hash[offset + 1] << 16) | (hash[offset + 2] << 8) | hash[offset + 3];
