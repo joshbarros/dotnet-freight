@@ -1,3 +1,4 @@
+import { createHmac } from 'node:crypto';
 import { APIRequestContext, Page, expect } from '@playwright/test';
 
 export const ADMIN = {
@@ -48,4 +49,43 @@ export async function submitBooking(page: Page, reference: string, teu: number) 
   await page.getByLabel('Booking reference').fill(reference);
   await page.getByLabel('TEU', { exact: true }).fill(String(teu));
   await page.getByRole('button', { name: 'Book space' }).click();
+}
+
+/** RFC 6238 (SHA-1, 30 seconds, 6 digits): enough to play the part of an authenticator app. */
+export function totp(base32Key: string): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = 0;
+  let value = 0;
+  const bytes: number[] = [];
+  for (const c of base32Key.replace(/=+$/, '').toUpperCase()) {
+    value = (value << 5) | alphabet.indexOf(c);
+    bits += 5;
+    if (bits >= 8) {
+      bytes.push((value >>> (bits - 8)) & 0xff);
+      bits -= 8;
+    }
+  }
+  const counter = Buffer.alloc(8);
+  counter.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 1000 / 30)));
+  const hash = createHmac('sha1', Buffer.from(bytes)).update(counter).digest();
+  const offset = hash[hash.length - 1] & 0x0f;
+  const binary = hash.readUInt32BE(offset) & 0x7fffffff;
+  return (binary % 1_000_000).toString().padStart(6, '0');
+}
+
+/** The newest link mailed to an address, read from the dev mailbox (the demo stack turns it on). */
+export async function mailLink(request: APIRequestContext, email: string): Promise<string> {
+  let link = '';
+  await expect
+    .poll(
+      async () => {
+        const response = await request.get(`/api/dev/mailbox?to=${encodeURIComponent(email)}`);
+        const mails = response.ok() ? await response.json() : [];
+        link = mails[0]?.link ?? '';
+        return link;
+      },
+      { timeout: 15_000 },
+    )
+    .not.toBe('');
+  return link;
 }
