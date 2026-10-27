@@ -9,7 +9,14 @@ using MimeKit;
 
 namespace Freight.Identity;
 
-public record MailMessageData(string To, string Subject, string Body, string? Link);
+public record MailMessageData(string To, string Subject, string Body, string? Link)
+{
+    private static long _next;
+
+    /// <summary>Orders messages in the dev mailbox; not part of the message.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public long Sequence { get; } = Interlocked.Increment(ref _next);
+}
 
 /// <summary>Sends the emails the sign-in flows need: confirm an address, reset a password.</summary>
 public interface IAuthMailer
@@ -58,8 +65,9 @@ public sealed class DevMailbox
         while (_messages.Count > 200 && _messages.TryDequeue(out _)) { }
     }
 
+    /// <summary>Newest first.</summary>
     public IReadOnlyList<MailMessageData> For(string to) =>
-        _messages.Where(m => string.Equals(m.To, to, StringComparison.OrdinalIgnoreCase)).Reverse().ToList();
+        _messages.Where(m => string.Equals(m.To, to, StringComparison.OrdinalIgnoreCase)).OrderByDescending(m => m.Sequence).ToList();
 }
 
 /// <summary>Records every message in the dev mailbox, then hands it to the real mailer.</summary>
