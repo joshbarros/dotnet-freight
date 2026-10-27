@@ -63,7 +63,7 @@ public class BookingService(BookingsDbContext db, ISailingCatalog sailings, ICur
         return booking;
     }
 
-    public async Task<List<Booking>> ListAsync(string? sailingCode, CancellationToken ct)
+    public async Task<(List<Booking> Items, int Total)> ListAsync(string? sailingCode, int page, int pageSize, CancellationToken ct)
     {
         var query = db.Bookings.AsNoTracking();
         if (!user.IsStaff)
@@ -73,7 +73,9 @@ public class BookingService(BookingsDbContext db, ISailingCatalog sailings, ICur
         }
         if (!string.IsNullOrWhiteSpace(sailingCode))
             query = query.Where(b => b.SailingCode == sailingCode);
-        return await query.OrderByDescending(b => b.CreatedAt).Take(100).ToListAsync(ct);
+        var total = await query.CountAsync(ct);
+        var items = await query.OrderByDescending(b => b.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        return (items, total);
     }
 
     /// <summary>Moves Held or Issued to Reversed and asks Capacity to give the unit back. The bill of lading is not touched.</summary>
